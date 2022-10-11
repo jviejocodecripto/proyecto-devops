@@ -1,0 +1,46 @@
+version: "3.9"
+services:
+  pg:
+    image: postgres:14
+    ports:
+      - "5555:5432"
+    environment:
+     - POSTGRES_PASSWORD: postgres
+    networks: 
+      - app-net
+    volumes:
+     - db-data:/var/lib/postgresql/data
+
+  backend:
+    image: proyecto/backend:0.0.6
+    build:
+      context: back-end
+      dockerfile: ./Dockerfile
+    networks: 
+      - app-net
+    ports:
+      - "8000:3001" # para que sea accesible por el host
+    environment:
+      DB: pg # nombre dns del container de la base de datos
+      DB_PORT: 5432 # puerto por donde escucha
+      PORT: 3001
+  frontend:
+    image: proyecto/frontend:0.0.3
+    build:
+      context: front-end
+      dockerfile: ./Dockerfile
+    networks: 
+      - app-net
+    ports:
+    - "3001:80"
+    environment:
+      PORT: 8000
+
+networks:
+  app-net:
+    driver: bridge
+    name: app-net
+
+volumes:
+  db-data:
+    driver: local
